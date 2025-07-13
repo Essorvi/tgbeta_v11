@@ -417,6 +417,9 @@ async def get_or_create_user(telegram_id: int, username: str = None, first_name:
     user_data = await db.users.find_one({"telegram_id": telegram_id})
     
     if user_data:
+        # Проверяем и обновляем админ статус
+        is_admin = username == ADMIN_USERNAME if username else False
+        
         await db.users.update_one(
             {"telegram_id": telegram_id},
             {
@@ -424,10 +427,19 @@ async def get_or_create_user(telegram_id: int, username: str = None, first_name:
                     "last_active": datetime.utcnow(),
                     "username": username,
                     "first_name": first_name,
-                    "last_name": last_name
+                    "last_name": last_name,
+                    "is_admin": is_admin  # Обновляем админ статус
                 }
             }
         )
+        
+        # Обновляем объект пользователя с новым админ статусом
+        user_data['is_admin'] = is_admin
+        user_data['username'] = username
+        user_data['first_name'] = first_name
+        user_data['last_name'] = last_name
+        user_data['last_active'] = datetime.utcnow()
+        
         return User(**user_data), False
     else:
         referral_code_generated = generate_referral_code(telegram_id)
