@@ -1049,6 +1049,21 @@ async def handle_admin_callback(chat_id: int, user: User, data: str):
         stats_text += f"💰 Выручка: {revenue:.2f} ₽"
         
         await send_telegram_message(chat_id, stats_text, reply_markup=create_admin_menu())
+    
+    elif data == "admin_broadcast":
+        await set_user_state(user.telegram_id, "waiting_broadcast_message")
+        
+        broadcast_text = f"📢 *МАССОВАЯ РАССЫЛКА*\n\n"
+        broadcast_text += f"📝 *Отправьте сообщение, которое нужно разослать всем пользователям бота*\n\n"
+        broadcast_text += f"⚠️ *Внимание:* Сообщение будет отправлено всем пользователям без возможности отмены\n\n"
+        broadcast_text += f"💡 *Поддерживается Markdown форматирование*\n"
+        broadcast_text += f"❌ Для отмены нажмите кнопку ниже"
+        
+        await send_telegram_message(
+            chat_id,
+            broadcast_text,
+            reply_markup=create_back_keyboard()
+        )
 
 async def handle_payment_callback(chat_id: int, user: User, data: str):
     """Handle payment callbacks"""
