@@ -1630,6 +1630,9 @@ async def handle_telegram_update(update_data: Dict[str, Any]):
             crypto_type = user_state.data.get("crypto_type", "btc")
             await handle_custom_crypto_amount_input(chat_id, user, text, crypto_type)
             return
+        elif user_state.state == "waiting_broadcast_message":
+            await handle_broadcast_message_input(chat_id, user, text)
+            return
 
     # Handle /start command
     if text.startswith('/start'):
