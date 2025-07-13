@@ -1468,6 +1468,46 @@ async def handle_custom_crypto_amount_input(chat_id: int, user: User, text: str,
     await handle_crypto_payment_amount(chat_id, user, crypto_type, str(amount))
 
 
+async def handle_broadcast_message_input(chat_id: int, user: User, text: str):
+    """Handle broadcast message input from admin"""
+    await clear_user_state(user.telegram_id)
+    
+    # Get all users from database
+    all_users_cursor = db.users.find({}, {"telegram_id": 1})
+    all_users = await all_users_cursor.to_list(length=None)
+    
+    total_users = len(all_users)
+    sent_count = 0
+    failed_count = 0
+    
+    # Send confirmation message to admin
+    confirmation_text = f"📢 *ЗАПУСК РАССЫЛКИ*\n\n"
+    confirmation_text += f"👥 *Всего пользователей:* {total_users}\n"
+    confirmation_text += f"📝 *Сообщение:*\n{text}\n\n"
+    confirmation_text += f"⏳ Рассылка начинается..."
+    
+    await send_telegram_message(chat_id, confirmation_text)
+    
+    # Send message to all users
+    for user_data in all_users:
+        user_id = user_data.get('telegram_id')
+        if user_id and user_id != user.telegram_id:  # Don't send to admin
+            success = await send_telegram_message(user_id, f"📢 *СООБЩЕНИЕ ОТ АДМИНИСТРАЦИИ:*\n\n{text}")
+            if success:
+                sent_count += 1
+            else:
+                failed_count += 1
+    
+    # Send results to admin
+    result_text = f"✅ *РАССЫЛКА ЗАВЕРШЕНА*\n\n"
+    result_text += f"👥 *Всего пользователей:* {total_users}\n"
+    result_text += f"✅ *Доставлено:* {sent_count}\n"
+    result_text += f"❌ *Не доставлено:* {failed_count}\n\n"
+    result_text += f"📊 *Эффективность:* {(sent_count/total_users*100):.1f}%" if total_users > 0 else ""
+    
+    await send_telegram_message(chat_id, result_text, reply_markup=create_admin_menu())
+
+
 async def handle_pre_checkout_query(pre_checkout_query: Dict[str, Any]):
     """Handle pre-checkout query from Telegram Stars payments"""
     try:
