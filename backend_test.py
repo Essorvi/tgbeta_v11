@@ -24,7 +24,9 @@ load_dotenv('/app/backend/.env')
 
 # Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://da93c359-3829-4b53-b388-a20063a6715b.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
+# Use local backend for testing since external URL is not accessible
+LOCAL_BACKEND_URL = "http://localhost:8001"
+API_BASE = f"{LOCAL_BACKEND_URL}/api"
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET')
 BOT_USERNAME = os.getenv('BOT_USERNAME', 'search1_test_bot')
